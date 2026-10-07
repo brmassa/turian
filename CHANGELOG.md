@@ -7,9 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-- Added (breaking): Studio color themes are `.pss` stylesheets. The 14 built-ins ship as embedded sheets with identical colors, and every token derives from three seeds (`$base`, `$accent`, `$contrast`) in `gaya.base`. Sheets dropped into `~/.gaya/themes` appear in View → Themes and Settings and reload on save; a broken sheet keeps the last valid theme and logs `file:line:col`. `~/.gaya/theme.user.pss` overrides any theme. New tokens: success/info/hint, selection, scrim, log levels, ANSI 0–15 and version-control states. Plugins declare their own tokens (`IPluginContext.Themes`), and the Scene view's gizmo and orientation colors are now themeable. Settings store theme ids (old names still load). Migration: `StudioTheme` becomes `ThemeTokens` (`ThemeTokens.Current`); `IThemeService.Apply`/`Preview`/`Themes`/`CommittedName` become `ApplyColorTheme`/`PreviewColorTheme`/`ColorThemes`/`CommittedColorTheme`; `Register(StudioTheme)` is obsolete for one release. #213
-- Improved: Studio startup and project switching show the workbench with a centered loading card, active phases, asset counts and elapsed time. Unchanged assets retain their imported files and child indexes across restarts; generated projects preserve timestamps, either assembly slot can supply cached code, and Build & Run copies only changed assets. Recent projects use menu rows and configured titles with a fitted current-project control; native windows use Gaya or project-specific Turian titles and icons, and Scene and Game views share their configured empty sky. Output separates Information and internal Studio messages and offers source files through the OS default application and copy actions, Inspector selection avoids diagnostic spam, and disabled hierarchy branches appear dimmed; dock tabs, compact menus, and initial window placement are corrected in Guinevere. OBJ/FBX imports preserve upward Y to prevent inverted models; caches regenerate on import, and scenes that compensated with negative Y scale should remove that compensation.
-- Fixed: release builds run again — the skip-shaders flag now reaches MSBuild, so the tag ships the committed .spv, and the release runners install glslc anyway.
+- Added: Bricks panel moved to Gaya with studio/project scopes #214
+- Added (breaking): `.pss` color themes with hot reload #213
+- Changed: theme API renamed to `ThemeTokens`/`ColorTheme`
+- Improved: startup and project switching, asset caching, project/window titles, output and hierarchy polish, OBJ/FBX import orientation
+- Fixed: release builds pass skip-shaders to MSBuild
 
 ## [2.3.0] - 2026-10-06
 
