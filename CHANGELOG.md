@@ -7,6 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+- Changed (breaking): Gaya settings use class-level attributes as their sole configuration, preserve stored page ids, and place the FPS cap under General/Performance; panels own their automatically rendered tab-strip widgets through `RenderHeader` and `PanelHeaderContext`.
 - Added: Asset browser with split view by default, a compact toolbar, transparent Preview API thumbnails, scalable icons, zoom, breadcrumbs, name/type/label/favorite filters, persistent favorites, undoable desktop imports and shared drag-and-drop and context menus.
 - Added: theme bricks from the command line #215
 - Added: Bricks panel moved to Gaya with studio/project scopes #214
