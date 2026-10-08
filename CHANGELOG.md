@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 - Changed: Wavefront OBJ import is an optional #47
+- Changed (breaking): Replace AMMESH with glTF 2.0 (GLB); migrate existing caches and preserve authoring assets
 - Changed (breaking): Gaya settings use class-level attributes as their sole configuration, preserve stored page ids, and place the FPS cap under General/Performance; panels own their automatically rendered tab-strip widgets through `RenderHeader` and `PanelHeaderContext`.
 - Added: Asset browser with split view by default, a compact toolbar, transparent Preview API thumbnails, scalable icons, zoom, breadcrumbs, name/type/label/favorite filters, persistent favorites, undoable desktop imports and shared drag-and-drop and context menus.
 - Added: theme bricks from the command line #215
