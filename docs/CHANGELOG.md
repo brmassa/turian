@@ -6,7 +6,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
-- Fixed: publish shared Bricks NuGet contracts on release tags.
+- Changed: publish `MASS4.Bricks` (renamed from `Gaya.Packages`), `MASS4.Gaya.Attributes`, `MASS4.Gaya.Sdk`, `MASS4.Turian.Attributes` and `MASS4.Turian.Engine` NuGet packages on release tags.
 
 ## [3.3.0] - 2026-10-23
 

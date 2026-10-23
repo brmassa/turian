@@ -6,7 +6,8 @@
         <Nullable>enable</Nullable>
         <GenerateDocumentationFile>true</GenerateDocumentationFile>
         <RootNamespace>Turian</RootNamespace>
-        <IsPackable>false</IsPackable>
+        <PackageId>MASS4.Turian.Attributes</PackageId>
+        <Description>Gameplay and editor metadata for Turian components and assets, with no engine dependency.</Description>
         <!-- Release packaging includes the shared MASS4.Attributes assembly from this output. -->
         <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
     </PropertyGroup>

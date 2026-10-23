@@ -8,7 +8,9 @@
         <ImplicitUsings>enable</ImplicitUsings>
         <GenerateDocumentationFile>true</GenerateDocumentationFile>
         <RootNamespace>Turian.Engine.Core</RootNamespace>
-        <IsPackable>false</IsPackable>
+        <PackageId>MASS4.Turian.Engine</PackageId>
+        <Description>The Turian engine runtime API that game code and bricks compile against, with its component source generator.</Description>
+        <TargetsForTfmSpecificContentInPackage>$(TargetsForTfmSpecificContentInPackage);PackCodeGenerator</TargetsForTfmSpecificContentInPackage>
     </PropertyGroup>
 
     <ItemGroup>
@@ -21,11 +23,22 @@
     <ItemGroup>
         <ProjectReference Include="$(SolutionDir)/Turian/Engine/Attributes/Turian.Engine.Attributes.csproj"/>
         <ProjectReference Include="$(SolutionDir)/Turian/Editor/CSharp/CodeGenerator/Turian.CSharp.CodeGenerator.csproj"
-                          OutputItemType="Analyzer" ReferenceOutputAssembly="false"/>
+                          OutputItemType="Analyzer" ReferenceOutputAssembly="false" PrivateAssets="all"/>
     </ItemGroup>
 
+    <!-- Consumers of the package run the same component generator as this project. -->
+    <Target Name="PackCodeGenerator">
+        <MSBuild Projects="$(SolutionDir)/Turian/Editor/CSharp/CodeGenerator/Turian.CSharp.CodeGenerator.csproj"
+                 Targets="GetTargetPath" RemoveProperties="TargetFramework;RuntimeIdentifier">
+            <Output TaskParameter="TargetOutputs" ItemName="CodeGeneratorAssembly"/>
+        </MSBuild>
+        <ItemGroup>
+            <TfmSpecificPackageFile Include="@(CodeGeneratorAssembly)" PackagePath="analyzers/dotnet/cs"/>
+        </ItemGroup>
+    </Target>
+
     <ItemGroup>
-        <ProjectReference Include="$(SolutionDir)/Gaya/Gaya.Packages/Gaya.Packages.csproj" />
+        <ProjectReference Include="$(SolutionDir)/Gaya/MASS4.Bricks/MASS4.Bricks.csproj" />
     </ItemGroup>
 
     <!-- Engine-independent libraries, each in its own repository; the local checkout is used while unpublished. -->

@@ -6,7 +6,7 @@
         <ImplicitUsings>enable</ImplicitUsings>
         <GenerateDocumentationFile>true</GenerateDocumentationFile>
         <AssemblyName>Gaya.Attributes</AssemblyName>
-        <IsPackable>false</IsPackable>
+        <PackageId>MASS4.Gaya.Attributes</PackageId>
         <Description>UI-independent metadata for Gaya settings and contributions.</Description>
     </PropertyGroup>
 </Project>

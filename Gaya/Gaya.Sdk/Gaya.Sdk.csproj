@@ -8,7 +8,7 @@
         <GenerateDocumentationFile>true</GenerateDocumentationFile>
         <RootNamespace>Gaya.Sdk</RootNamespace>
         <AssemblyName>Gaya.Sdk</AssemblyName>
-        <IsPackable>false</IsPackable>
+        <PackageId>MASS4.Gaya.Sdk</PackageId>
         <Title>Gaya SDK</Title>
         <Description>The Gaya plugin contract: IPlugin, the plugin context and the panel, command, menu, key-binding and chrome registries a plugin contributes through. The only assembly a Gaya plugin needs to reference.</Description>
     </PropertyGroup>
