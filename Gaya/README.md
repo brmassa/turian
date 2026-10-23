@@ -5,12 +5,14 @@ The shell knows nothing about what it is editing: panels, commands, menus, key b
 arrive from plugins, so the same host can be a game studio, a code editor or a 3D modeller depending on
 which plugins are loaded.
 
-| Package | Referenced by |
+| Assembly | Referenced by |
 | --- | --- |
-| `MASS4.Gaya.Attributes` | settings metadata without a UI dependency; included transitively by the SDK |
-| `MASS4.Gaya.Sdk` | plugins — the contract, and the only Gaya assembly a plugin needs |
-| `MASS4.Gaya.Host` | the application shell — plugin activation, workbench, docking, layout persistence |
+| `Gaya.Attributes` | settings metadata without a UI dependency; included transitively by the SDK |
+| `Gaya.Sdk` | plugins — the contract, and the only Gaya assembly a plugin needs |
+| `Gaya.Host` | the application shell — plugin activation, workbench, docking, layout persistence |
 | `Gaya.Packages` | hosts — brick manifests, sources, resolution, the shared store and registries |
+
+`Gaya.Packages` is published as `MASS4.Gaya.Packages` for external consumers of the shared Bricks APIs. The workbench and editor assemblies are distributed as DLLs. Turian's editor integration is currently bundled with Studio; its planned distribution is a brick.
 
 A plugin is a class carrying `[Plugin(id, displayName)]` and implementing `IPlugin`:
 
@@ -79,7 +81,7 @@ public sealed class NotesPanel : IPanel
 ## API migration
 
 - Register color themes as `.pss` sheets with `IThemeService.Register(ThemeSource)`, and read their compiled colors and metrics from `IThemeService.Current`. The C# theme record and its registration overload have been removed.
-- Replace `MASS4.Attributes.EditorSettingAttribute` with `Gaya.EditorSettingAttribute` from `MASS4.Gaya.Attributes`. Use `[Gaya.EditorSetting(...)]` when importing both namespaces; regenerated Turian user projects provide an alias for `[EditorSetting]`.
+- Replace `MASS4.Attributes.EditorSettingAttribute` with `Gaya.EditorSettingAttribute` from `Gaya.Attributes.dll`. Use `[Gaya.EditorSetting(...)]` when importing both namespaces; regenerated Turian user projects provide an alias for `[EditorSetting]`.
 - Move settings page ids, paths, descriptions, order, scope and visibility into the class attribute. Replace `settings.Register(new SettingsPageDescriptor(...))` with `settings.Register(instance)`; descriptors expose read-only metadata derived from that instance. Preserve each existing id to retain preferences.
 - Move `TabStripChromeDescriptor` contributions into the panel's `RenderHeader` method. The tab-strip registry and `IPluginContext.TabStripChrome` have been removed. Keep application-wide chrome contributions on `IPluginContext.Chrome`.
 - Recompile plugins and user scripts against the updated Gaya assemblies. These changes require a major release under the release policy.
