@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
-        <Version>4.1.1</Version>
+        <Version>4.1.2</Version>
         <OutputType>Exe</OutputType>
         <TargetFramework>net11.0</TargetFramework>
         <Nullable>enable</Nullable>
@@ -17,15 +17,14 @@
         <ProjectReference Include="../Cli.Sdk/Turian.Cli.Sdk.csproj"/>
         <ProjectReference Include="$(SolutionDir)/Turian/Engine/Core/Turian.Engine.Core.csproj"/>
         <ProjectReference Include="$(SolutionDir)/Turian/Editor/Core/Turian.Editor.Core.csproj"/>
-        <!-- Ships the default render backend; the CLI reaches it only through IEditorRenderBackend. -->
         <ProjectReference Include="$(SolutionDir)/Turian/Packages/org.mass4.turian.vulkan/Source~/Turian.Editor.Rendering.Vulkan/Turian.Editor.Rendering.Vulkan.csproj"/>
     </ItemGroup>
 
     <!-- External libraries -->
     <ItemGroup>
-        <PackageReference Include="System.CommandLine" Version="2.0.14" />
-        <PackageReference Include="Microsoft.Extensions.Logging" Version="10.0.14" />
-        <PackageReference Include="Microsoft.Extensions.Logging.Console" Version="10.0.14" />
+        <PackageReference Include="System.CommandLine" Version="3.0.0" />
+        <PackageReference Include="Microsoft.Extensions.Logging" Version="11.0.0" />
+        <PackageReference Include="Microsoft.Extensions.Logging.Console" Version="11.0.0" />
     </ItemGroup>
 
     <!-- The platform host template is copied, not compiled -->

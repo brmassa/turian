@@ -6,7 +6,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
-- Changed: Editor Core and the CLI link no renderer or GUI toolkit; rendering goes through `IEditorRenderBackend`, and `theme verify` ships with the Studio.
+- Changed!: Editor Core link no renderer or GUI.
+- Changed: `BricksSettings` moved to the editor.
+- Changed: dependencies bumped
+- Removed: object pools moved to the `org.mass4.turian.pooling` #90.
+
+## [4.1.2] - 2026-11-13
+
+- Fixed: compile skips validators of bricks that cannot load
 
 ## [4.1.1] - 2026-11-13
 
@@ -214,7 +221,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 - First commit!
 
-[Unreleased]: https://github.com/MASS4ORG/Turian/compare/v4.1.1...HEAD
+[Unreleased]: https://github.com/MASS4ORG/Turian/compare/v4.1.2...HEAD
+[4.1.2]: https://github.com/MASS4ORG/Turian/compare/v4.1.1...v4.1.2
 [4.1.1]: https://github.com/MASS4ORG/Turian/compare/v4.1.0...v4.1.1
 [4.1.0]: https://github.com/MASS4ORG/Turian/compare/v4.0.0...v4.1.0
 [4.0.0]: https://github.com/MASS4ORG/Turian/compare/v3.11.0...v4.0.0
