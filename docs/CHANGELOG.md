@@ -6,6 +6,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+- Changed: the engine runtime no longer depends on the brick package manager; `BricksSettings` moved to the editor.
+
 ## [4.1.1] - 2026-11-13
 
 - Added: things can live per session #358.
