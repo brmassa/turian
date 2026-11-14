@@ -6,6 +6,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+- Removed: object and node pools from the engine core; they moved to the `org.mass4.turian.pooling` brick #90.
+
 ## [4.1.1] - 2026-11-13
 
 - Added: things can live per session #358.
