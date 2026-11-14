@@ -53,7 +53,7 @@ public sealed class EditorRenderBackendAttribute(Type backendType) : Attribute
 
 /// <summary>
 /// Finds the installed render backend: loaded assemblies first, then <c>Turian.Editor.Rendering.*</c> assemblies
-/// beside the tool and in the built-in bricks' editor folders.
+/// beside Editor Core and in the built-in bricks' editor folders.
 /// </summary>
 public static class EditorRenderBackends
 {
@@ -81,7 +81,9 @@ public static class EditorRenderBackends
 
     static void LoadCandidates()
     {
-        var directories = new List<string> { AppContext.BaseDirectory };
+        var editorDirectory = Path.GetDirectoryName(typeof(EditorRenderBackends).Assembly.Location)
+                              ?? AppContext.BaseDirectory;
+        var directories = new List<string> { editorDirectory };
         if (Directory.Exists(ProjectPackages.BuiltinDirectory))
         {
             directories.AddRange(Directory.EnumerateDirectories(ProjectPackages.BuiltinDirectory)
