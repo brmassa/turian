@@ -26,8 +26,8 @@ sealed partial class AssetBrowserPanel : IPanel, IDisposable
     readonly AssetRevealService reveal;
     readonly FileDialogChrome? fileDialogs;
     readonly IEditorSettings editorSettings;
-    readonly AssetThumbnailCache thumbnails;
-    readonly AssetThumbnailRenderer? thumbnailRenderer;
+    readonly AssetThumbnailCache<SKImage> thumbnails;
+    readonly IAssetThumbnailRenderer? thumbnailRenderer;
     readonly AssetImporter? importer;
     readonly AssetLabelService? labelService;
     readonly AssetDatabase? database;
@@ -81,7 +81,7 @@ sealed partial class AssetBrowserPanel : IPanel, IDisposable
         AssetCreationCatalog creation, AssetBrowserSettings browserSettings, IEditorSettings editorSettings,
         AssetTypeCatalog types, PrefabAuthoring prefabs, AssetFileOperations operations,
         BricksController bricks, ConfirmDialogChrome confirm, BuildManager build,
-        AssetThumbnailRenderer? thumbnailRenderer = null, AssetImporter? importer = null,
+        IAssetThumbnailRenderer? thumbnailRenderer = null, AssetImporter? importer = null,
         AssetLabelService? labelService = null, AssetDatabase? database = null, FileDialogChrome? fileDialogs = null)
     {
         this.build = build;
@@ -106,7 +106,7 @@ sealed partial class AssetBrowserPanel : IPanel, IDisposable
         this.importer = importer;
         this.labelService = labelService;
         this.database = database;
-        thumbnails = new AssetThumbnailCache((entry, size) => thumbnailRenderer?.Render(entry, size));
+        thumbnails = new AssetThumbnailCache<SKImage>((entry, size) => thumbnailRenderer?.Render(entry, size)?.ToSkImage());
         brickTree = new BrickAssetTree(fileSystem);
         bricks.Changed += OnBricksChanged;
 

@@ -6,6 +6,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+- Changed: Editor Core and the CLI link no renderer or GUI toolkit; rendering goes through `IEditorRenderBackend`, and `theme verify` ships with the Studio.
+
 ## [4.1.1] - 2026-11-13
 
 - Added: things can live per session #358.

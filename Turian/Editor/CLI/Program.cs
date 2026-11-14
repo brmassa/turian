@@ -39,7 +39,6 @@ public static partial class Program
             OapCommand(projectArg),
             BrickCommand(),
             VariantCommand(),
-            ThemeCommand()
         };
 
         root.Options.Add(new Option<DirectoryInfo?>("--cli-project")

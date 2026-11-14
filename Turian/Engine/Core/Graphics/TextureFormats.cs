@@ -13,15 +13,15 @@ public static class TextureFormats
     /// Reports whether <paramref name="format"/> stores 4×4 block-compressed data.
     /// </summary>
     /// <param name="format">The format to classify.</param>
-    public static bool IsBlockCompressed(Format format) => format switch
+    public static bool IsBlockCompressed(Ktx2VkFormat format) => format switch
     {
-        Format.BC1RgbUnormBlock or Format.BC1RgbSrgbBlock
-            or Format.BC1RgbaUnormBlock or Format.BC1RgbaSrgbBlock
-            or Format.BC2UnormBlock or Format.BC2SrgbBlock
-            or Format.BC3UnormBlock or Format.BC3SrgbBlock
-            or Format.BC4UnormBlock or Format.BC4SNormBlock
-            or Format.BC5UnormBlock or Format.BC5SNormBlock
-            or Format.BC7UnormBlock or Format.BC7SrgbBlock => true,
+        Ktx2VkFormat.Bc1RgbUnormBlock or Ktx2VkFormat.Bc1RgbSrgbBlock
+            or Ktx2VkFormat.Bc1RgbaUnormBlock or Ktx2VkFormat.Bc1RgbaSrgbBlock
+            or Ktx2VkFormat.Bc2UnormBlock or Ktx2VkFormat.Bc2SrgbBlock
+            or Ktx2VkFormat.Bc3UnormBlock or Ktx2VkFormat.Bc3SrgbBlock
+            or Ktx2VkFormat.Bc4UnormBlock or Ktx2VkFormat.Bc4SnormBlock
+            or Ktx2VkFormat.Bc5UnormBlock or Ktx2VkFormat.Bc5SnormBlock
+            or Ktx2VkFormat.Bc7UnormBlock or Ktx2VkFormat.Bc7SrgbBlock => true,
         _ => false,
     };
 
@@ -31,18 +31,18 @@ public static class TextureFormats
     /// </summary>
     /// <param name="format">The format to measure.</param>
     /// <exception cref="NotSupportedException">The format is not one the engine uploads.</exception>
-    public static uint ElementSizeBytes(Format format) => format switch
+    public static uint ElementSizeBytes(Ktx2VkFormat format) => format switch
     {
-        Format.BC1RgbUnormBlock or Format.BC1RgbSrgbBlock
-            or Format.BC1RgbaUnormBlock or Format.BC1RgbaSrgbBlock
-            or Format.BC4UnormBlock or Format.BC4SNormBlock => 8,
-        Format.BC2UnormBlock or Format.BC2SrgbBlock
-            or Format.BC3UnormBlock or Format.BC3SrgbBlock
-            or Format.BC5UnormBlock or Format.BC5SNormBlock
-            or Format.BC7UnormBlock or Format.BC7SrgbBlock => 16,
-        Format.R8G8B8A8Unorm or Format.R8G8B8A8Srgb => 4,
-        Format.R8Unorm => 1,
-        Format.R8G8Unorm => 2,
+        Ktx2VkFormat.Bc1RgbUnormBlock or Ktx2VkFormat.Bc1RgbSrgbBlock
+            or Ktx2VkFormat.Bc1RgbaUnormBlock or Ktx2VkFormat.Bc1RgbaSrgbBlock
+            or Ktx2VkFormat.Bc4UnormBlock or Ktx2VkFormat.Bc4SnormBlock => 8,
+        Ktx2VkFormat.Bc2UnormBlock or Ktx2VkFormat.Bc2SrgbBlock
+            or Ktx2VkFormat.Bc3UnormBlock or Ktx2VkFormat.Bc3SrgbBlock
+            or Ktx2VkFormat.Bc5UnormBlock or Ktx2VkFormat.Bc5SnormBlock
+            or Ktx2VkFormat.Bc7UnormBlock or Ktx2VkFormat.Bc7SrgbBlock => 16,
+        Ktx2VkFormat.R8G8B8A8Unorm or Ktx2VkFormat.R8G8B8A8Srgb => 4,
+        Ktx2VkFormat.R8Unorm => 1,
+        Ktx2VkFormat.R8G8Unorm => 2,
         _ => throw new NotSupportedException($"Unsupported texture format: {format}"),
     };
 
@@ -53,7 +53,7 @@ public static class TextureFormats
     /// <param name="format">The format of the level.</param>
     /// <param name="width">Level width in texels.</param>
     /// <param name="height">Level height in texels.</param>
-    public static uint LevelSizeBytes(Format format, uint width, uint height)
+    public static uint LevelSizeBytes(Ktx2VkFormat format, uint width, uint height)
     {
         var elementSize = ElementSizeBytes(format);
         if (!IsBlockCompressed(format))

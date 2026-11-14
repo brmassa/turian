@@ -92,13 +92,13 @@ public sealed class CliPluginTests
             var studioBrick = InstallFixture(studio);
             var workspace = new StudioBricks(studio, TurianStudioBricks.Hosts);
             var root = new RootCommand();
-            CliPlugins.Load(root, [], NullLogger.Instance, workspace, project);
+            CliPlugins.Load(root, [], NullLogger.Instance, workspace, project, temporary);
             var command = Assert.Single(root.Subcommands);
             Assert.Equal($"{projectBrick}|{project}", command.Description);
             Assert.Empty(root.Parse(["context"]).Errors);
 
             var outside = new RootCommand();
-            CliPlugins.Load(outside, [], NullLogger.Instance, workspace, temporary);
+            CliPlugins.Load(outside, [], NullLogger.Instance, workspace, temporary, temporary);
             Assert.Equal($"{studioBrick}|", Assert.Single(outside.Subcommands).Description);
         }
         finally
@@ -141,7 +141,8 @@ public sealed class CliPluginTests
             Directory.CreateDirectory(Path.Combine(project, "Bricks"));
             File.WriteAllText(Path.Combine(project, "Bricks", "manifest.json"), "{");
             var root = new RootCommand();
-            CliPlugins.Load(root, [], NullLogger.Instance, new StudioBricks(studio, TurianStudioBricks.Hosts), project);
+            CliPlugins.Load(root, [], NullLogger.Instance, new StudioBricks(studio, TurianStudioBricks.Hosts), project,
+                temporary);
             Assert.Equal($"{brick}|{project}", Assert.Single(root.Subcommands).Description);
         }
         finally

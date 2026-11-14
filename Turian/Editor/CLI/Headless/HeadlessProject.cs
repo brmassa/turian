@@ -2,8 +2,8 @@ namespace Turian.Editor.CLI;
 
 /// <summary>
 /// A project opened outside the Studio: asset database, scene manager and — when graphics are
-/// requested — a headless Vulkan device. Scenes load through the same <see cref="SceneManager"/>
-/// the Studio and the standalone runtime use.
+/// requested — a headless device from the installed render backend. Scenes load through the same
+/// <see cref="SceneManager"/> the Studio and the standalone runtime use.
 /// </summary>
 sealed class HeadlessProject : IDisposable
 {
@@ -18,8 +18,11 @@ sealed class HeadlessProject : IDisposable
     /// <summary>Gets the scene manager scenes are loaded through.</summary>
     public SceneManager SceneManager { get; }
 
-    /// <summary>Gets the headless Vulkan device, or <c>null</c> when the project was opened without graphics.</summary>
-    public Vulkan? Vulkan { get; }
+    /// <summary>Gets the render backend, or <c>null</c> when the project was opened without graphics.</summary>
+    public IEditorRenderBackend? Renderer { get; }
+
+    /// <summary>Gets the backend's headless device, or <c>null</c> when the project was opened without graphics.</summary>
+    public IRenderDevice? Device { get; }
 
     /// <summary>Gets the locale service the project's localization brick registered, or <c>null</c> without one.</summary>
     public ILocaleContext? Locale => services.GetService<ILocaleContext>();
@@ -55,7 +58,12 @@ sealed class HeadlessProject : IDisposable
         }
 
         SceneManager = new SceneManager(Database);
-        Vulkan = withGraphics ? new Vulkan(logger) : null;
+        if (withGraphics)
+        {
+            Renderer = EditorRenderBackends.Find()
+                       ?? throw new InvalidOperationException("No render backend is installed, so nothing can be drawn.");
+            Device = Renderer.CreateDevice(logger);
+        }
 
         var registrations = new ServiceCollection()
             .AddSingleton<IAppSettings>(settings)
@@ -66,9 +74,10 @@ sealed class HeadlessProject : IDisposable
             .AddSingleton<IAssetLoader>(new RuntimeAssetLoader(Database))
             .AddSingleton(new SimulationClock(settings.Get<TimeSettings>()));
 
-        if (Vulkan is not null)
+        // Components may ask for the backend's own device type as well as the neutral contract.
+        if (Device is not null)
         {
-            _ = registrations.AddSingleton(Vulkan).AddSingleton<IRenderDevice>(Vulkan);
+            _ = registrations.AddSingleton(Device.GetType(), Device).AddSingleton(Device);
         }
 
         if (TypeRegistry.TryGetType("Usercode.Game", out var gameType) && gameType is not null)
@@ -91,7 +100,7 @@ sealed class HeadlessProject : IDisposable
     /// </summary>
     /// <param name="settings">The project's build settings.</param>
     /// <param name="logger">The logger progress is reported through.</param>
-    /// <param name="withGraphics">Whether to create a headless Vulkan device.</param>
+    /// <param name="withGraphics">Whether to create a headless render device.</param>
     /// <returns>The opened project.</returns>
     public static HeadlessProject Open(BuildAppSettings settings, ILogger logger, bool withGraphics) =>
         new(settings, logger, withGraphics);
@@ -135,6 +144,6 @@ sealed class HeadlessProject : IDisposable
     public void Dispose()
     {
         services.Dispose();
-        ModelAsset.ClearCache();
+        Renderer?.ReleaseCachedModels();
     }
 }

@@ -16,7 +16,7 @@ public static class ProjectIcon
     static readonly int[] IcoSizes = [16, 32, 48, 256];
 
     static readonly string[] ImageExtensions =
-        [".png", ".jpg", ".jpeg", ".bmp", ".gif", ".webp", ".tga", ".ico"];
+        [".png", ".jpg", ".jpeg", ".bmp", ".gif", ".tga", ".ico"];
 
     /// <summary>
     /// The source image of a project's icon, for a project that is not open: its player settings are read
@@ -75,7 +75,7 @@ public static class ProjectIcon
         var pngPath = Path.Combine(outputDirectory, PngFileName);
         var icoPath = Path.Combine(outputDirectory, IcoFileName);
 
-        using var image = FindSource(project) is { } source ? SKBitmap.Decode(File.ReadAllBytes(source)) : null;
+        var image = FindSource(project) is { } source ? Decode(source) : null;
         if (image is null)
         {
             File.Delete(pngPath);
@@ -94,7 +94,7 @@ public static class ProjectIcon
     /// </summary>
     /// <param name="image">The source image.</param>
     /// <returns>The file's bytes.</returns>
-    public static byte[] EncodeIco(SKBitmap image)
+    public static byte[] EncodeIco(RasterImage image)
     {
         ArgumentNullException.ThrowIfNull(image);
 
@@ -134,25 +134,58 @@ public static class ProjectIcon
     /// <param name="image">The source image.</param>
     /// <param name="size">The square's side in pixels.</param>
     /// <returns>The PNG's bytes.</returns>
-    public static byte[] EncodePng(SKBitmap image, int size)
+    public static byte[] EncodePng(RasterImage image, int size)
     {
         ArgumentNullException.ThrowIfNull(image);
+        return PngEncoder.Encode(image.FitSquare(size));
+    }
 
-        using var surface = SKSurface.Create(new SKImageInfo(size, size, SKColorType.Rgba8888, SKAlphaType.Premul));
-        var scale = (float)size / Math.Max(image.Width, image.Height);
-        var width = image.Width * scale;
-        var height = image.Height * scale;
-
-        surface.Canvas.Clear(SKColors.Transparent);
-        using (var source = SKImage.FromBitmap(image))
+    /// <summary>
+    /// Decodes an icon source: any image <see cref="RasterImage.Decode"/> reads, or the largest PNG entry of an
+    /// <c>.ico</c>. Returns <c>null</c> for anything else, such as an <c>.ico</c> holding only bitmaps.
+    /// </summary>
+    /// <param name="path">The image file.</param>
+    /// <returns>The image, or <c>null</c>.</returns>
+    public static RasterImage? Decode(string path)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(path);
+        if (!File.Exists(path))
         {
-            surface.Canvas.DrawImage(source, SKRect.Create((size - width) / 2, (size - height) / 2, width, height),
-                new SKSamplingOptions(SKCubicResampler.Mitchell));
+            return null;
         }
 
-        using var snapshot = surface.Snapshot();
-        using var data = snapshot.Encode(SKEncodedImageFormat.Png, 100);
-        return data.ToArray();
+        var bytes = File.ReadAllBytes(path);
+        return Path.GetExtension(path).Equals(".ico", StringComparison.OrdinalIgnoreCase)
+            ? LargestIcoPng(bytes) is { } png ? RasterImage.Decode(png) : null
+            : RasterImage.Decode(bytes);
+    }
+
+    // ICONDIR, then 16-byte entries whose last two fields are the image's length and offset.
+    static byte[]? LargestIcoPng(byte[] ico)
+    {
+        if (ico.Length < 6 || BinaryPrimitives.ReadUInt16LittleEndian(ico.AsSpan(2)) != 1)
+        {
+            return null;
+        }
+
+        byte[]? largest = null;
+        var count = BinaryPrimitives.ReadUInt16LittleEndian(ico.AsSpan(4));
+        for (var i = 0; i < count && 6 + ((i + 1) * 16) <= ico.Length; i++)
+        {
+            var entry = ico.AsSpan(6 + (i * 16), 16);
+            var length = BinaryPrimitives.ReadInt32LittleEndian(entry[8..]);
+            var offset = BinaryPrimitives.ReadInt32LittleEndian(entry[12..]);
+            if (length <= 8 || offset < 0 || offset > ico.Length - length
+                || !ico.AsSpan(offset, 8).SequenceEqual((ReadOnlySpan<byte>)[0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A])
+                || length <= (largest?.Length ?? 0))
+            {
+                continue;
+            }
+
+            largest = ico.AsSpan(offset, length).ToArray();
+        }
+
+        return largest;
     }
 
     static Guid MetaId(string sourcePath)

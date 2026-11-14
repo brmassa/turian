@@ -16,6 +16,8 @@
     <ItemGroup>
         <ProjectReference Include="$(SolutionDir)/Gaya/Gaya.Host/Gaya.Host.csproj"/>
         <ProjectReference Include="$(SolutionDir)/Turian/Editor/Gaya.Plugin/Gaya.Plugin.Turian.csproj"/>
+        <!-- Published beside the CLI, which loads it as a built-in plugin; a CLI-only install omits it. -->
+        <ProjectReference Include="$(SolutionDir)/Turian/Editor/CliPlugins/Themes/Turian.Cli.Plugins.Themes.csproj"/>
     </ItemGroup>
 
     <ItemGroup>

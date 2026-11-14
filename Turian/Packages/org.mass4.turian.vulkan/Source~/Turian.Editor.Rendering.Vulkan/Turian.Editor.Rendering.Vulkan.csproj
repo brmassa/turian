@@ -1,0 +1,25 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <Version>1.0.0</Version>
+        <TargetFramework>net10.0</TargetFramework>
+        <Nullable>enable</Nullable>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <GenerateDocumentationFile>true</GenerateDocumentationFile>
+        <RootNamespace>Turian.Editor.Core</RootNamespace>
+        <Description>The Vulkan backend's editor side: offscreen captures, asset previews and thumbnails for the Studio and CLI.</Description>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <InternalsVisibleTo Include="Turian.Tests"/>
+    </ItemGroup>
+
+    <!-- Internal libraries -->
+    <ItemGroup>
+        <ProjectReference Include="$(SolutionDir)/Turian/Editor/Core/Turian.Editor.Core.csproj"/>
+        <ProjectReference Include="../Turian.Engine.Vulkan/Turian.Engine.Vulkan.csproj"/>
+    </ItemGroup>
+
+    <!-- Shipped beside the Studio and CLI, not in the brick's Precast~/editor folder: a project that leaves the brick out
+         would otherwise retire this assembly, and the editor would lose its previews and captures. -->
+</Project>

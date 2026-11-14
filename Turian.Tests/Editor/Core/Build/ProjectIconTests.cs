@@ -27,21 +27,23 @@ public class ProjectIconTests : IDisposable
         GC.SuppressFinalize(this);
     }
 
-    static SKBitmap Image(int width, int height)
+    static RasterImage Image(int width, int height)
     {
-        var bitmap = new SKBitmap(width, height);
-        bitmap.Erase(SKColors.OrangeRed);
-        return bitmap;
+        var image = new RasterImage(width, height);
+        for (var i = 0; i < image.Pixels.Length; i += 4)
+        {
+            image.Pixels[i + 1] = 0x45;
+            image.Pixels[i + 2] = 0xFF;
+            image.Pixels[i + 3] = 0xFF;
+        }
+
+        return image;
     }
 
     AppSettings ProjectWithIcon()
     {
         var imagePath = Path.Combine(root, "Assets", "logo.png");
-        using (var image = Image(300, 150))
-        using (var data = SKImage.FromBitmap(image).Encode(SKEncodedImageFormat.Png, 100))
-        {
-            File.WriteAllBytes(imagePath, data.ToArray());
-        }
+        File.WriteAllBytes(imagePath, PngEncoder.Encode(Image(300, 150)));
 
         var texture = new TextureAsset { Id = Guid.NewGuid(), RelativePath = "Assets/logo.png" };
         Serializer.Save<Asset>($"{imagePath}.meta", texture);
@@ -69,7 +71,24 @@ public class ProjectIconTests : IDisposable
         using var png = SKBitmap.Decode(File.ReadAllBytes(Path.Combine(output, ProjectIcon.PngFileName)));
         Assert.Equal(256, png.Width);
         Assert.Equal(256, png.Height);
+        Assert.Equal(new SKColor(0xFF, 0x45, 0x00), png.GetPixel(128, 128));
+        Assert.Equal(0, png.GetPixel(128, 10).Alpha);
         Assert.True(File.Exists(Path.Combine(output, ProjectIcon.IcoFileName)));
+    }
+
+    /// <summary>An <c>.ico</c> source is read from its largest PNG entry; one without PNG entries is no icon.</summary>
+    [Fact]
+    public void AnIcoSourceUsesItsLargestPngEntry()
+    {
+        var ico = Path.Combine(root, "logo.ico");
+        File.WriteAllBytes(ico, ProjectIcon.EncodeIco(Image(64, 32)));
+        var decoded = ProjectIcon.Decode(ico);
+        Assert.NotNull(decoded);
+        Assert.Equal(256, decoded.Width);
+
+        File.WriteAllBytes(ico, [0, 0, 1, 0, 1, 0, .. new byte[16]]);
+        Assert.Null(ProjectIcon.Decode(ico));
+        Assert.Null(ProjectIcon.Decode(Path.Combine(root, "missing.png")));
     }
 
     /// <summary>A project without an icon leaves no icon files behind from an earlier build.</summary>
@@ -89,8 +108,7 @@ public class ProjectIconTests : IDisposable
     [Fact]
     public void TheIcoHoldsAPngPerSize()
     {
-        using var image = Image(64, 64);
-        var ico = ProjectIcon.EncodeIco(image);
+        var ico = ProjectIcon.EncodeIco(Image(64, 64));
 
         Assert.Equal(1, BitConverter.ToUInt16(ico, 2));
         var count = BitConverter.ToUInt16(ico, 4);

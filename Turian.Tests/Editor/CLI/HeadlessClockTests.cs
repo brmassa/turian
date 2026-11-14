@@ -40,7 +40,7 @@ public sealed class HeadlessClockTests : IDisposable
         var component = Assert.IsType<ClockComponent>(loaded.Components.Single());
         var clock = Assert.IsType<SimulationClock>(component.Clock);
 
-        Assert.Null(project.Vulkan);
+        Assert.Null(project.Device);
         Assert.Equal(0.02, clock.FixedDeltaTime);
         Assert.Equal(2, clock.MaxTicksPerFrame);
         project.SceneManager.AdoptScene(asset.Id, loaded);

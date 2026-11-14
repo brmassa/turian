@@ -29,7 +29,12 @@ public sealed class RenderStats
     }
 
     /// <summary>Writes frame samples and load durations as JSON; unsupported GPU metrics are null.</summary>
-    public void WriteJson(string path, double? sceneLoadMilliseconds, AssetLoadStats assetLoads)
+    /// <param name="path">The JSON file to write.</param>
+    /// <param name="sceneLoadMilliseconds">How long the scene took to load, when measured.</param>
+    /// <param name="assetLoads">The asset database's load counts and durations.</param>
+    /// <param name="texturePayloadBytes">Texture bytes the render backend holds, or zero without one.</param>
+    public void WriteJson(string path, double? sceneLoadMilliseconds, AssetLoadStats assetLoads,
+        ulong texturePayloadBytes = 0)
     {
         var report = new
         {
@@ -41,7 +46,7 @@ public sealed class RenderStats
             averageFrameMilliseconds = Frames == 0 ? 0 : times.Average(),
             medianFrameMilliseconds = Median(),
             measuredFramesPerSecond = times.Sum() > 0 ? Frames * 1000 / times.Sum() : 0,
-            texturePayloadBytes = TextureAsset.UploadedBytes,
+            texturePayloadBytes,
             gpuMilliseconds = (double?)null,
             gpuBufferBytes = (ulong?)null,
             gpuTextureBytes = (ulong?)null,

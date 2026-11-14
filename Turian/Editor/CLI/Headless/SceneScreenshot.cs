@@ -1,154 +1,80 @@
 namespace Turian.Editor.CLI;
 
 /// <summary>
-/// Renders a loaded hierarchy through the editor's offscreen viewer and writes the result as a PNG.
+/// Renders a loaded hierarchy through an offscreen capture of the installed render backend and writes the result
+/// as a PNG.
 /// </summary>
 static class SceneScreenshot
 {
     /// <summary>
-    /// Renders <paramref name="root"/> and writes <paramref name="outputPath"/>.
+    /// Renders <paramref name="root"/> through <paramref name="capture"/> and writes <paramref name="outputPath"/>.
     /// </summary>
-    /// <param name="vulkan">The headless Vulkan device.</param>
-    /// <param name="assets">The asset database materials and textures are read from.</param>
+    /// <param name="capture">The offscreen capture, sized and configured by the caller, who disposes it.</param>
     /// <param name="root">The hierarchy to render.</param>
-    /// <param name="options">Camera, size and frame-count options.</param>
+    /// <param name="options">Camera and frame-count options.</param>
     /// <param name="bounds">World bounds used when framing the whole scene.</param>
     /// <param name="outputPath">Absolute path of the PNG to write.</param>
     /// <param name="logger">The logger timings are reported through.</param>
-    /// <param name="drawGizmos">
-    /// When <c>true</c>, populates a representative set of gizmos (axis lines, a wire cube, a wire
-    /// sphere and an overlay ring) so the gizmo renderer can be verified headlessly.
-    /// </param>
-    /// <param name="services">Project services used to construct the interface, or <c>null</c>.</param>
-    /// <param name="factory">The interface factory, or <c>null</c> to discover it.</param>
     public static void Capture(
-        Vulkan vulkan,
-        AssetDatabase assets,
+        ISceneCapture capture,
         Node root,
         ScreenshotOptions options,
         Bounds bounds,
         string outputPath,
-        ILogger logger,
-        bool drawGizmos = false,
-        IServiceProvider? services = null,
-        IUiPresenterFactory? factory = null)
+        ILogger logger)
     {
-        ArgumentNullException.ThrowIfNull(vulkan);
-        ArgumentNullException.ThrowIfNull(assets);
+        ArgumentNullException.ThrowIfNull(capture);
         ArgumentNullException.ThrowIfNull(root);
         ArgumentNullException.ThrowIfNull(options);
         ArgumentNullException.ThrowIfNull(logger);
 
-        using var runner = new ScreenshotRunner(vulkan, assets, root, options, bounds, logger, drawGizmos, services, factory);
-        runner.CaptureAndSave(outputPath, logger);
+        PlaceCamera(capture.Camera, root, options, bounds, logger);
+        var lightNode = options.Headlight > 0f ? AddHeadlight(root, capture.Camera, options.Headlight) : null;
+        try
+        {
+            for (var frame = 0; frame < options.Frames; frame++)
+            {
+                var started = Stopwatch.GetTimestamp();
+                capture.Render(root, 1.0 / 60.0);
+                logger.LogInformation(
+                    "Frame {Frame}/{Frames}: {Elapsed:F1} ms",
+                    frame + 1,
+                    options.Frames,
+                    Stopwatch.GetElapsedTime(started).TotalMilliseconds);
+            }
+
+            var culling = capture.CullingStats;
+            logger.LogInformation("Culling: {Submitted} submitted, {Culled}/{Total} submeshes culled",
+                culling.Submitted, culling.Culled, culling.Total);
+            if (capture.Occlusion is var (counts, allocated))
+            {
+                logger.LogInformation(
+                    "GPU occlusion: {Visible} visible, {Culled}/{Total} hidden; {Memory:F2} MiB (completed frame)",
+                    counts.Submitted, counts.Culled, counts.Total, allocated / 1048576.0);
+            }
+
+            PngEncoder.Save(outputPath, capture.ReadPixels(), alpha: false);
+            logger.LogInformation(
+                "Wrote {Width}×{Height} screenshot: {OutputPath}",
+                capture.Width,
+                capture.Height,
+                outputPath);
+        }
+        finally
+        {
+            if (lightNode is not null)
+            {
+                _ = root.Children.Remove(lightNode);
+            }
+        }
     }
 
     /// <summary>
-    /// Owns the offscreen viewer and the UI objects it composites for one screenshot. The overlay and
-    /// world-panel sources pull from the runner's UI objects, and the runner releases the viewer before
-    /// those objects, so the sources never run against a disposed UI manager.
+    /// A representative set of gizmos (axis lines, a wire cube, a wire sphere and an overlay ring) that verifies the
+    /// gizmo renderer headlessly.
     /// </summary>
-    sealed class ScreenshotRunner : IDisposable
-    {
-        readonly SceneViewerService viewer;
-        readonly Node root;
-        readonly IUiPresenter? uiPresenter;
-        readonly Node? lightNode;
-        readonly int frames;
-
-        public ScreenshotRunner(
-            Vulkan vulkan,
-            AssetDatabase assets,
-            Node root,
-            ScreenshotOptions options,
-            Bounds bounds,
-            ILogger logger,
-            bool drawGizmos,
-            IServiceProvider? services,
-            IUiPresenterFactory? factory)
-        {
-            this.root = root;
-            frames = options.Frames;
-            viewer = new SceneViewerService(vulkan, assets, options.Width, options.Height);
-            if (drawGizmos)
-            {
-                viewer.OnPopulateGizmos = DrawTestGizmos;
-            }
-
-            uiPresenter = (factory ?? UiPresenters.Find())?.Create(vulkan, null, services);
-            if (uiPresenter is not null)
-            {
-                viewer.OverlaySource = (w, h, dt) => uiPresenter.TryRenderOverlay(root, (int)w, (int)h, dt);
-                viewer.WorldUiSource = frame => uiPresenter.RenderWorldPanels(root, frame);
-            }
-
-            PlaceCamera(viewer.Camera, root, options, bounds, logger);
-            lightNode = options.Headlight > 0f ? AddHeadlight(root, viewer.Camera, options.Headlight) : null;
-        }
-
-        public void CaptureAndSave(string outputPath, ILogger logger)
-        {
-            try
-            {
-                for (var frame = 0; frame < frames; frame++)
-                {
-                    var started = Stopwatch.GetTimestamp();
-                    viewer.Render(root, 1.0 / 60.0);
-                    logger.LogInformation(
-                        "Frame {Frame}/{Frames}: {Elapsed:F1} ms",
-                        frame + 1,
-                        frames,
-                        Stopwatch.GetElapsedTime(started).TotalMilliseconds);
-                }
-
-                var culling = viewer.CullingStats;
-                logger.LogInformation("Culling: {Submitted} submitted, {Culled}/{Total} submeshes culled",
-                    culling.Submitted, culling.Culled, culling.Total);
-                ReportOcclusion(logger);
-
-                var pixels = new byte[viewer.Width * viewer.Height * 4];
-                viewer.CopyPixels(pixels);
-                PngWriter.Save(outputPath, pixels, viewer.Width, viewer.Height);
-
-                logger.LogInformation(
-                    "Wrote {Width}×{Height} screenshot: {OutputPath}",
-                    viewer.Width,
-                    viewer.Height,
-                    outputPath);
-            }
-            finally
-            {
-                viewer.OverlaySource = null;
-                viewer.WorldUiSource = null;
-                if (lightNode is not null)
-                {
-                    _ = root.Children.Remove(lightNode);
-                }
-            }
-        }
-
-        public void Dispose()
-        {
-            viewer.OverlaySource = null;
-            viewer.WorldUiSource = null;
-            viewer.Dispose();
-            uiPresenter?.Dispose();
-        }
-
-        void ReportOcclusion(ILogger logger)
-        {
-            if (!viewer.UseOcclusionCulling)
-            {
-                return;
-            }
-
-            var counts = viewer.OcclusionStats;
-            logger.LogInformation("GPU occlusion: {Visible} visible, {Culled}/{Total} hidden; {Memory:F2} MiB (completed frame)",
-                counts.Submitted, counts.Culled, counts.Total, viewer.OcclusionAllocatedBytes / 1048576.0);
-        }
-    }
-
-    static void DrawTestGizmos(Gizmos gizmos)
+    /// <param name="gizmos">The frame's gizmo buffer.</param>
+    public static void DrawTestGizmos(Gizmos gizmos)
     {
         var origin = Vector3.Zero;
 

@@ -4,14 +4,23 @@ using Turian.Cli.Sdk;
 
 namespace Turian.Editor.CLI;
 
-/// <summary>Loads command providers from the selected project's bricks and the user's studio bricks.</summary>
+/// <summary>
+/// Loads command providers installed beside the CLI, such as the Studio's theme checks, then those of the selected
+/// project's bricks and the user's studio bricks.
+/// </summary>
 static class CliPlugins
 {
+    /// <summary>The file-name prefix of command providers installed beside the CLI.</summary>
+    internal const string BuiltInPrefix = "Turian.Cli.Plugins.";
+
+    static readonly HashSet<string> ResolvedDirectories = new(StringComparer.Ordinal);
+
     internal static void Load(RootCommand root, string[] args, ILogger logger, StudioBricks? studio = null,
-        string? currentDirectory = null)
+        string? currentDirectory = null, string? builtInDirectory = null)
     {
         var project = FindProject(args, currentDirectory ?? Directory.GetCurrentDirectory());
         var registry = new CommandRegistry(root);
+        LoadBuiltIn(registry, builtInDirectory ?? AppContext.BaseDirectory, project, logger);
         var packages = new List<(ResolvedPackage Brick, string? Workspace)>();
         if (project is not null)
         {
@@ -48,6 +57,46 @@ static class CliPlugins
                 logger.LogWarning("CLI plugins in {Workspace} could not be resolved: {Problem}", workspace, ex.Message);
             }
         }
+    }
+
+    // Optional tooling ships as separate assemblies, so the CLI itself never links what only they need.
+    internal static void LoadBuiltIn(CommandRegistry registry, string directory, string? project, ILogger logger)
+    {
+        var paths = Directory.EnumerateFiles(directory, $"{BuiltInPrefix}*.dll").Order(StringComparer.Ordinal).ToList();
+        if (paths.Count > 0)
+        {
+            ResolveFrom(directory);
+        }
+
+        foreach (var path in paths)
+        {
+            try
+            {
+                var assembly = Assembly.Load(new AssemblyName(Path.GetFileNameWithoutExtension(path)));
+                RegisterAssembly(registry, assembly, new CliPluginContext(directory, project, logger));
+            }
+            catch (Exception ex) when (ex is IOException or BadImageFormatException)
+            {
+                logger.LogWarning(ex, "Built-in CLI plugin {Path} could not be loaded", path);
+            }
+        }
+    }
+
+    // The CLI's dependency list omits what only the plugins use, such as the Studio workbench they are published with.
+    static void ResolveFrom(string directory)
+    {
+        lock (ResolvedDirectories)
+        {
+            if (!ResolvedDirectories.Add(Path.GetFullPath(directory)))
+            {
+                return;
+            }
+        }
+
+        System.Runtime.Loader.AssemblyLoadContext.Default.Resolving += (context, name) =>
+            Path.Combine(directory, $"{name.Name}.dll") is var candidate && File.Exists(candidate)
+                ? context.LoadFromAssemblyPath(Path.GetFullPath(candidate))
+                : null;
     }
 
     static void LoadBrick(CommandRegistry registry, ResolvedPackage brick, string? workspace,

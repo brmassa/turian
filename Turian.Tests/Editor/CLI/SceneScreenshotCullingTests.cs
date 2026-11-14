@@ -21,8 +21,13 @@ public sealed class SceneScreenshotCullingTests(VulkanFixture fixture) : IClassF
         try
         {
             var options = new ScreenshotOptions { Width = 32, Height = 32, Frames = 1, Yaw = 0, Pitch = 0, Headlight = 0 };
-            SceneScreenshot.Capture(fixture.Vulkan, new AssetDatabase(), new Node(), options, Bounds.Empty,
-                Path.Combine(directory.FullName, "shot.png"), NullLogger.Instance, services: services, factory: factory);
+            using (var capture = new VulkanSceneCapture(fixture.Vulkan, new AssetDatabase(),
+                       new SceneCaptureOptions(32, 32) { Services = services }, factory))
+            {
+                SceneScreenshot.Capture(capture, new Node(), options, Bounds.Empty,
+                    Path.Combine(directory.FullName, "shot.png"), NullLogger.Instance);
+            }
+
             factory.Received(1).Create(fixture.Vulkan, null, services);
             Assert.Equal("pt-BR", services.GetRequiredService<ILocaleContext>().ActiveLocale);
         }
@@ -62,8 +67,12 @@ public sealed class SceneScreenshotCullingTests(VulkanFixture fixture) : IClassF
         {
             var database = new AssetDatabase();
             var output = Path.Combine(directory.FullName, "shot.png");
-            SceneScreenshot.Capture(fixture.Vulkan, database, root, options, Bounds.Empty,
-                output, logger, drawGizmos: true);
+            using (var capture = new VulkanEditorRenderBackend().CreateCapture(fixture.Vulkan, database,
+                       new SceneCaptureOptions(32, 32) { PopulateGizmos = SceneScreenshot.DrawTestGizmos }))
+            {
+                SceneScreenshot.Capture(capture, root, options, Bounds.Empty, output, logger);
+            }
+
             Assert.True(File.Exists(output));
             var messages = logger.ReceivedCalls().Where(call => call.GetMethodInfo().Name == nameof(ILogger.Log))
                 .Select(call => call.GetArguments()[2]!.ToString()!).ToList();

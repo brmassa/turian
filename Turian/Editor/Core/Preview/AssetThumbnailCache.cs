@@ -3,24 +3,29 @@ namespace Turian.Editor.Core;
 /// <summary>Identifies a thumbnail by asset, import revision, preview provider and resolution.</summary>
 public readonly record struct AssetThumbnailKey(Guid AssetId, string Path, string Revision, int Size);
 
-/// <summary>Owns a bounded cache and renders a limited number of queued thumbnails on the render thread.</summary>
-public sealed class AssetThumbnailCache(Func<AssetEntry, int, SKImage?> render, int capacity = 512) : IDisposable
+/// <summary>
+/// Owns a bounded cache and renders a limited number of queued thumbnails on the render thread. The image type is
+/// whatever the interface library draws, such as a GPU-backed image; disposable images are released on eviction.
+/// </summary>
+/// <typeparam name="TImage">The image type the interface library draws.</typeparam>
+public sealed class AssetThumbnailCache<TImage>(Func<AssetEntry, int, TImage?> render, int capacity = 512) : IDisposable
+    where TImage : class
 {
     sealed record Request(AssetThumbnailKey Key, AssetEntry Entry);
-    sealed record Cached(SKImage? Image, LinkedListNode<AssetThumbnailKey> Node);
+    sealed record Cached(TImage? Image, LinkedListNode<AssetThumbnailKey> Node);
 
     readonly Dictionary<AssetThumbnailKey, Cached> images = [];
     readonly LinkedList<AssetThumbnailKey> recent = [];
     readonly Queue<Request> pending = [];
     readonly HashSet<AssetThumbnailKey> queued = [];
-    readonly List<SKImage> retired = [];
+    readonly List<TImage> retired = [];
 
     /// <summary>Releases evicted images after the preceding frame has finished drawing them.</summary>
     public void BeginFrame()
     {
         foreach (var image in retired)
         {
-            image.Dispose();
+            (image as IDisposable)?.Dispose();
         }
 
         retired.Clear();
@@ -33,7 +38,7 @@ public sealed class AssetThumbnailCache(Func<AssetEntry, int, SKImage?> render, 
     public int PendingCount => pending.Count;
 
     /// <summary>Returns a cached image or schedules its production; requests are deduplicated.</summary>
-    public SKImage? RequestImage(AssetEntry entry, string revision, int size = 128)
+    public TImage? RequestImage(AssetEntry entry, string revision, int size = 128)
     {
         var bucket = size <= 64 ? 64 : size <= 128 ? 128 : 256;
         var key = new AssetThumbnailKey(entry.AssetMetadata?.Id ?? Guid.Empty, entry.AbsolutePath, revision, bucket);
@@ -63,7 +68,7 @@ public sealed class AssetThumbnailCache(Func<AssetEntry, int, SKImage?> render, 
     void Produce(Request request)
     {
         queued.Remove(request.Key);
-        SKImage? image = null;
+        TImage? image = null;
         try { image = render(request.Entry, request.Key.Size); }
         catch (Exception ex) { Log.Logger.LogDebug(ex, "Could not preview {Path}", request.Entry.AbsolutePath); }
         images.Add(request.Key, new Cached(image, recent.AddLast(request.Key)));
@@ -91,7 +96,7 @@ public sealed class AssetThumbnailCache(Func<AssetEntry, int, SKImage?> render, 
         BeginFrame();
         foreach (var cached in images.Values)
         {
-            cached.Image?.Dispose();
+            (cached.Image as IDisposable)?.Dispose();
         }
 
         images.Clear();

@@ -103,7 +103,7 @@ public class TextureAssetImporter : IAssetImporter
             var (width, height, levels) = ApplyMaxResolution(dds.Width, dds.Height, dds.Levels, maxResolution);
             return new Ktx2Texture
             {
-                Format = (Ktx2VkFormat)dds.Format,
+                Format = dds.Format,
                 Width = width,
                 Height = height,
                 Levels = levels,
