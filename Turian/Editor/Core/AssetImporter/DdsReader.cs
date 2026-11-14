@@ -1,4 +1,4 @@
-namespace Turian.Engine.Core;
+namespace Turian.Editor.Core;
 
 /// <summary>
 /// Reads DirectDraw Surface files into the block data a Vulkan upload wants. Only the
@@ -80,7 +80,7 @@ public static class DdsReader
 
         var fourCc = BinaryPrimitives.ReadUInt32LittleEndian(span[offsetFourCc..]);
         var dataOffset = offsetDxt10;
-        Format format;
+        Ktx2VkFormat format;
 
         if (fourCc == FourCc("DX10"))
         {
@@ -108,7 +108,7 @@ public static class DdsReader
     static List<ReadOnlyMemory<byte>> ReadLevels(
         ReadOnlyMemory<byte> data,
         int dataOffset,
-        Format format,
+        Ktx2VkFormat format,
         uint width,
         uint height,
         uint mipMapCount)
@@ -143,61 +143,61 @@ public static class DdsReader
         return levels;
     }
 
-    static Format FromFourCc(uint fourCc, bool isSrgb)
+    static Ktx2VkFormat FromFourCc(uint fourCc, bool isSrgb)
     {
         if (fourCc == FourCc("DXT1"))
         {
-            return isSrgb ? Format.BC1RgbaSrgbBlock : Format.BC1RgbaUnormBlock;
+            return isSrgb ? Ktx2VkFormat.Bc1RgbaSrgbBlock : Ktx2VkFormat.Bc1RgbaUnormBlock;
         }
 
         if (fourCc == FourCc("DXT3"))
         {
-            return isSrgb ? Format.BC2SrgbBlock : Format.BC2UnormBlock;
+            return isSrgb ? Ktx2VkFormat.Bc2SrgbBlock : Ktx2VkFormat.Bc2UnormBlock;
         }
 
         if (fourCc == FourCc("DXT5"))
         {
-            return isSrgb ? Format.BC3SrgbBlock : Format.BC3UnormBlock;
+            return isSrgb ? Ktx2VkFormat.Bc3SrgbBlock : Ktx2VkFormat.Bc3UnormBlock;
         }
 
         if (fourCc == FourCc("ATI1") || fourCc == FourCc("BC4U"))
         {
-            return Format.BC4UnormBlock;
+            return Ktx2VkFormat.Bc4UnormBlock;
         }
 
         if (fourCc == FourCc("BC4S"))
         {
-            return Format.BC4SNormBlock;
+            return Ktx2VkFormat.Bc4SnormBlock;
         }
 
         if (fourCc == FourCc("ATI2") || fourCc == FourCc("BC5U"))
         {
-            return Format.BC5UnormBlock;
+            return Ktx2VkFormat.Bc5UnormBlock;
         }
 
         if (fourCc == FourCc("BC5S"))
         {
-            return Format.BC5SNormBlock;
+            return Ktx2VkFormat.Bc5SnormBlock;
         }
 
         var code = new string([(char)(fourCc & 0xFF), (char)((fourCc >> 8) & 0xFF), (char)((fourCc >> 16) & 0xFF), (char)((fourCc >> 24) & 0xFF)]);
         throw new InvalidDataException($"Unsupported DDS fourCC '{code}'");
     }
 
-    static Format FromDxgiFormat(uint dxgiFormat) => dxgiFormat switch
+    static Ktx2VkFormat FromDxgiFormat(uint dxgiFormat) => dxgiFormat switch
     {
-        71 => Format.BC1RgbaUnormBlock,
-        72 => Format.BC1RgbaSrgbBlock,
-        74 => Format.BC2UnormBlock,
-        75 => Format.BC2SrgbBlock,
-        77 => Format.BC3UnormBlock,
-        78 => Format.BC3SrgbBlock,
-        80 => Format.BC4UnormBlock,
-        81 => Format.BC4SNormBlock,
-        83 => Format.BC5UnormBlock,
-        84 => Format.BC5SNormBlock,
-        98 => Format.BC7UnormBlock,
-        99 => Format.BC7SrgbBlock,
+        71 => Ktx2VkFormat.Bc1RgbaUnormBlock,
+        72 => Ktx2VkFormat.Bc1RgbaSrgbBlock,
+        74 => Ktx2VkFormat.Bc2UnormBlock,
+        75 => Ktx2VkFormat.Bc2SrgbBlock,
+        77 => Ktx2VkFormat.Bc3UnormBlock,
+        78 => Ktx2VkFormat.Bc3SrgbBlock,
+        80 => Ktx2VkFormat.Bc4UnormBlock,
+        81 => Ktx2VkFormat.Bc4SnormBlock,
+        83 => Ktx2VkFormat.Bc5UnormBlock,
+        84 => Ktx2VkFormat.Bc5SnormBlock,
+        98 => Ktx2VkFormat.Bc7UnormBlock,
+        99 => Ktx2VkFormat.Bc7SrgbBlock,
         _ => throw new InvalidDataException($"Unsupported DDS DXGI format {dxgiFormat}"),
     };
 }

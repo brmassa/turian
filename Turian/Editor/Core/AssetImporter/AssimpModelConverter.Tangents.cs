@@ -1,5 +1,3 @@
-using System.Buffers.Binary;
-
 namespace Turian.Editor.Core;
 
 public static partial class AssimpModelConverter

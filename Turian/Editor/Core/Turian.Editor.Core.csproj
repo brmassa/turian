@@ -17,7 +17,6 @@
     <ItemGroup>
         <ProjectReference Include="../Cli.Sdk/Turian.Cli.Sdk.csproj"/>
         <ProjectReference Include="$(SolutionDir)/Turian/Engine/Core/Turian.Engine.Core.csproj"/>
-        <ProjectReference Include="$(SolutionDir)/Turian/Packages/org.mass4.turian.vulkan/Source~/Turian.Engine.Vulkan/Turian.Engine.Vulkan.csproj"/>
         <ProjectReference Include="$(SolutionDir)/Gaya/MASS4.Bricks/MASS4.Bricks.csproj"/>
         <ProjectReference Include="$(SolutionDir)/Gaya/Gaya.Attributes/Gaya.Attributes.csproj"/>
         <ProjectReference Include="$(SolutionDir)/Turian/Localization/MASS4.Localization.csproj"/>
@@ -43,8 +42,8 @@
           <IncludeAssets>compile; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
         <PackageReference Include="Microsoft.Build.Locator" Version="1.11.2"/>
-        <PackageReference Include="SkiaSharp" Version="4.155.0" />
-        <PackageReference Include="SkiaSharp.NativeAssets.Linux" Version="4.155.0" />
+        <!-- Managed image decoding for texture import, project icons and thumbnails; no native imaging library. -->
+        <PackageReference Include="StbImageSharp" Version="2.30.16" />
         <!-- Microsoft.Build.Framework requires this exact version; bump all three together. -->
         <PackageReference Include="Microsoft.NET.StringTools" Version="18.12.2" ExcludeAssets="runtime" PrivateAssets="all">
             <IncludeAssets>compile; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>

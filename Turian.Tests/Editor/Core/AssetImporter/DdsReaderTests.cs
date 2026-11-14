@@ -5,9 +5,9 @@ public class DdsReaderTests
 {
     /// <summary>DXT1 maps to BC1 in whichever color space the asset declares.</summary>
     [Theory]
-    [InlineData(true, Format.BC1RgbaSrgbBlock)]
-    [InlineData(false, Format.BC1RgbaUnormBlock)]
-    public void Read_Dxt1_MapsToBc1InRequestedColorSpace(bool isSrgb, Format expected)
+    [InlineData(true, Ktx2VkFormat.Bc1RgbaSrgbBlock)]
+    [InlineData(false, Ktx2VkFormat.Bc1RgbaUnormBlock)]
+    public void Read_Dxt1_MapsToBc1InRequestedColorSpace(bool isSrgb, Ktx2VkFormat expected)
     {
         var file = DdsFixture.Build("DXT1", 8, 8, mipMapCount: 4, blockBytes: 8);
 
@@ -18,9 +18,9 @@ public class DdsReaderTests
 
     /// <summary>DXT5 maps to BC3 in whichever color space the asset declares.</summary>
     [Theory]
-    [InlineData(true, Format.BC3SrgbBlock)]
-    [InlineData(false, Format.BC3UnormBlock)]
-    public void Read_Dxt5_MapsToBc3InRequestedColorSpace(bool isSrgb, Format expected)
+    [InlineData(true, Ktx2VkFormat.Bc3SrgbBlock)]
+    [InlineData(false, Ktx2VkFormat.Bc3UnormBlock)]
+    public void Read_Dxt5_MapsToBc3InRequestedColorSpace(bool isSrgb, Ktx2VkFormat expected)
     {
         var file = DdsFixture.Build("DXT5", 8, 8, mipMapCount: 4, blockBytes: 16);
 
@@ -43,7 +43,7 @@ public class DdsReaderTests
 
         var image = DdsReader.Read(file, isSrgb);
 
-        Assert.Equal(Format.BC5UnormBlock, image.Format);
+        Assert.Equal(Ktx2VkFormat.Bc5UnormBlock, image.Format);
     }
 
     /// <summary>

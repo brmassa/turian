@@ -31,7 +31,13 @@ From the repository root:
 dotnet run --project Turian/Editor/CLI -- --help
 ```
 
-Requires .NET 10. Rendering commands also require Vulkan. Commands share their implementation with Studio through [Editor Core](../Core/).
+Requires .NET 10. Commands share their implementation with Studio through [Editor Core](../Core/), which links no renderer or GUI toolkit.
+
+## Rendering and optional commands
+
+Rendering commands (`screenshot`, `play --out`, `pick`) reach graphics only through `IEditorRenderBackend`: the first assembly named `Turian.Editor.Rendering.*` beside the CLI or in a built-in brick's `Precast~/editor` folder supplies the device, offscreen captures and thumbnails. The CLI ships the Vulkan backend; another backend replaces it without CLI changes, and commands that render report a missing backend instead of failing to start.
+
+Assemblies named `Turian.Cli.Plugins.*` beside the CLI are loaded as built-in `ICliPlugin` providers. The Studio publishes `theme verify` this way, so a CLI-only installation carries no GUI toolkit and lacks that command.
 
 ## Materialize producer sources
 

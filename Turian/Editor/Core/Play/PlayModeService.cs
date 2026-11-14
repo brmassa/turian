@@ -419,9 +419,10 @@ public sealed class PlayModeService(
             .AddSingleton(_ => new InputActionService(Input))
             .AddSingleton<IInputActions>(sp => sp.GetRequiredService<InputActionService>());
 
-        if (editorServices.GetService(typeof(Vulkan)) is Vulkan vulkan)
+        // Scripts may ask for the backend's own device type as well as the neutral contract.
+        if (editorServices.GetService(typeof(IRenderDevice)) is IRenderDevice device)
         {
-            services.AddSingleton(vulkan).AddSingleton<IRenderDevice>(vulkan);
+            services.AddSingleton(device.GetType(), device).AddSingleton(device);
         }
 
         AddProjectServices(services);

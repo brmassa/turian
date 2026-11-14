@@ -106,7 +106,7 @@ public sealed class HeadlessStatisticsTests(VulkanFixture fixture) : IClassFixtu
         finally
         {
             project?.Dispose();
-            project?.Vulkan?.Device.Dispose();
+            (project?.Device as IDisposable)?.Dispose();
             directory.Delete(true);
         }
     }

@@ -59,7 +59,7 @@ public sealed unsafe class Texture : IDisposable
         this.view = view;
         borrowedImage = true;
         IsPremultipliedSrgb = premultipliedSrgb;
-        SizeBytes = TextureFormats.LevelSizeBytes(format, width, height);
+        SizeBytes = TextureFormats.LevelSizeBytes((Ktx2VkFormat)format, width, height);
         CreateSampler(SamplerAddressMode.ClampToEdge);
     }
 
@@ -224,7 +224,7 @@ public sealed unsafe class Texture : IDisposable
         for (var level = 0; level < levelCount; level++)
         {
             var (levelWidth, levelHeight) = TextureFormats.LevelExtent(width, height, level);
-            total += TextureFormats.LevelSizeBytes(format, levelWidth, levelHeight);
+            total += TextureFormats.LevelSizeBytes((Ktx2VkFormat)format, levelWidth, levelHeight);
         }
 
         return total;

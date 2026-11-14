@@ -1,4 +1,4 @@
-namespace Turian.Engine.Core;
+namespace Turian.Editor.Core;
 
 /// <summary>
 /// A decoded DDS file: the Vulkan format its pixel data already is in, the base extent, and one
@@ -10,7 +10,7 @@ namespace Turian.Engine.Core;
 /// <param name="Height">Height of mip level 0.</param>
 /// <param name="Levels">One slice per mip level, largest first.</param>
 public sealed record DdsImage(
-    Format Format,
+    Ktx2VkFormat Format,
     uint Width,
     uint Height,
     IReadOnlyList<ReadOnlyMemory<byte>> Levels);

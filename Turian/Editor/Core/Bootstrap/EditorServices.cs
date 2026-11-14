@@ -33,9 +33,14 @@ public static class EditorServices
         services.AddSingleton<AssetWorkspace>();
         services.AddSingleton<WorkspaceSessionStore>();
         services.AddSingleton<SceneDocumentBinder>();
-        services.AddSingleton(static sp => new Vulkan(sp.GetRequiredService<ILogger>(), sp.GetService<IAppSettings>()));
-        services.AddSingleton<IRenderDevice>(static sp => sp.GetRequiredService<Vulkan>());
         services.AddSingleton<PlayModeService>();
+
+        // Without an installed render backend the editor still opens, imports and builds projects headlessly.
+        if (EditorRenderBackends.Find() is { } renderer)
+        {
+            services.AddSingleton(renderer);
+            renderer.ConfigureServices(services);
+        }
 
         return services.AddInternalServices(
             typeof(SceneManager).Assembly,

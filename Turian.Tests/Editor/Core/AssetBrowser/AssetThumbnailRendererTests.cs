@@ -1,3 +1,5 @@
+using System.Runtime.InteropServices;
+
 namespace Turian.Tests;
 
 /// <summary>Checks static browser thumbnails through real texture and scene preview providers.</summary>
@@ -41,15 +43,21 @@ public sealed class AssetThumbnailRendererTests(VulkanFixture fixture) : IClassF
             using var build = new BuildManager(new AppSettings { ProjectAbsoluteDir = directory.FullName },
                 NullLogger.Instance);
             var catalog = new AssetPreviewCatalog(build);
-            using var renderer = new AssetThumbnailRenderer(fixture.Vulkan, database, catalog);
-            using var image = renderer.Render(new AssetEntry(path, false, asset, directory.FullName), 64);
+            using var renderer = new VulkanThumbnailRenderer(fixture.Vulkan, database, catalog);
+            var image = renderer.Render(new AssetEntry(path, false, asset, directory.FullName), 64);
             Assert.NotNull(image);
-            using var bitmap = SKBitmap.FromImage(image);
-            var background = bitmap.GetPixel(0, 0);
-            Assert.Equal(0, background.Alpha);
-            Assert.Equal(255, bitmap.GetPixel(32, 32).Alpha);
-            Assert.NotEqual(background, bitmap.GetPixel(32, 32));
-            Assert.True(bitmap.Pixels.Count(pixel => pixel != background) > 100);
+            var pixels = MemoryMarshal.Cast<byte, uint>(image.Pixels);
+            var background = pixels[0];
+            Assert.Equal(0, image.Pixels[3]);
+            Assert.Equal(255, image.Pixels[(((32 * image.Width) + 32) * 4) + 3]);
+            Assert.NotEqual(background, pixels[(32 * image.Width) + 32]);
+            var differing = 0;
+            foreach (var pixel in pixels)
+            {
+                differing += pixel != background ? 1 : 0;
+            }
+
+            Assert.True(differing > 100);
             using var inspector = new AssetPreviewView(fixture.Vulkan, database, catalog);
             using var surface = SKSurface.Create(new SKImageInfo(180, 180));
             var font = Font.FromFamilyName("sans-serif", 14);
@@ -93,8 +101,8 @@ public sealed class AssetThumbnailRendererTests(VulkanFixture fixture) : IClassF
                 data.SaveTo(stream);
             }
             using var build = new BuildManager(new AppSettings { ProjectAbsoluteDir = directory }, NullLogger.Instance);
-            using var renderer = new AssetThumbnailRenderer(null!, new AssetDatabase(), new AssetPreviewCatalog(build));
-            using var cache = new AssetThumbnailCache(renderer.Render);
+            using var renderer = new VulkanThumbnailRenderer(null!, new AssetDatabase(), new AssetPreviewCatalog(build));
+            using var cache = new AssetThumbnailCache<RasterImage>(renderer.Render);
             var entry = new AssetEntry(path, false, new TextureAsset(), directory);
             cache.RequestImage(entry, "");
             cache.Process();
@@ -120,8 +128,8 @@ public sealed class AssetThumbnailRendererTests(VulkanFixture fixture) : IClassF
         {
             using var build = new BuildManager(new AppSettings { ProjectAbsoluteDir = directory }, NullLogger.Instance);
             var catalog = new AssetPreviewCatalog(build);
-            using var renderer = new AssetThumbnailRenderer(fixture.Vulkan, new AssetDatabase(), catalog);
-            using var cache = new AssetThumbnailCache(renderer.Render);
+            using var renderer = new VulkanThumbnailRenderer(fixture.Vulkan, new AssetDatabase(), catalog);
+            using var cache = new AssetThumbnailCache<RasterImage>(renderer.Render);
             SceneProvider.Builds = 0;
             SceneProvider.Disposals = 0;
             var entry = new AssetEntry("model.obj", false, new ThumbnailSceneAsset(), directory);
@@ -136,7 +144,7 @@ public sealed class AssetThumbnailRendererTests(VulkanFixture fixture) : IClassF
             Assert.Equal(2, SceneProvider.Builds);
             Assert.Equal(2, SceneProvider.Disposals);
             CustomTextureProvider.Calls = 0;
-            using var custom = renderer.Render(entry with { AssetMetadata = new ThumbnailTextureAsset() }, 64);
+            var custom = renderer.Render(entry with { AssetMetadata = new ThumbnailTextureAsset() }, 64);
             Assert.Null(custom);
             Assert.Equal(1, CustomTextureProvider.Calls);
         }

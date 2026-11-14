@@ -127,7 +127,7 @@ public static partial class Program
     }
 
     /// <summary>
-    /// Diagnostic for viewport picking: loads a scene with a live Vulkan device, then reports
+    /// Diagnostic for viewport picking: loads a scene with a live render device, then reports
     /// (a) how many <see cref="ModelComponent"/>s resolve non-empty world bounds and (b) what
     /// <see cref="ScenePicker.Pick"/> hits at a given screen point through a named scene camera.
     /// Exists to test the ray/bounds pipeline against real assets without needing the Studio
@@ -309,16 +309,14 @@ public static partial class Program
                 CameraName = result.GetValue(cameraOption),
             };
 
-            SceneScreenshot.Capture(
-                project.Vulkan!,
-                project.Database,
-                root,
-                options,
-                report.Bounds,
-                Path.GetFullPath(result.GetValue(outputOption)!),
-                Log.Logger,
-                drawGizmos: result.GetValue(gizmosOption),
-                services: project.Services);
+            using var capture = project.Renderer!.CreateCapture(project.Device!, project.Database,
+                new SceneCaptureOptions(options.Width, options.Height)
+                {
+                    PopulateGizmos = result.GetValue(gizmosOption) ? SceneScreenshot.DrawTestGizmos : null,
+                    Services = project.Services,
+                });
+            SceneScreenshot.Capture(capture, root, options, report.Bounds,
+                Path.GetFullPath(result.GetValue(outputOption)!), Log.Logger);
         });
 
         return cmd;

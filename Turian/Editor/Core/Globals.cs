@@ -1,8 +1,10 @@
+global using System.Buffers.Binary;
 global using System.Collections;
 global using System.Collections.Concurrent;
 global using System.Collections.Immutable;
 global using System.Diagnostics;
 global using System.Globalization;
+global using System.IO.Compression;
 global using System.Numerics;
 global using System.Reflection;
 global using System.Runtime.CompilerServices;
@@ -29,7 +31,6 @@ global using Microsoft.CodeAnalysis.MSBuild;
 global using Microsoft.Extensions.DependencyInjection;
 global using Microsoft.Extensions.Logging;
 global using OpenAssetPackage;
-global using SkiaSharp;
 global using StbImageSharp;
 global using Turian.Engine.Core;
 global using AssimpApi = Silk.NET.Assimp.Assimp;

@@ -12,4 +12,6 @@ The brick declares SkiaSharp and its Linux native assets as runtime dependencies
 
 ## Build
 
-Sources are under `Source~/Turian.Engine.Vulkan`, with shaders compiled by `./build.sh compile-shaders`. The solution build copies the library into `Precast~/lib`. The Studio and command line reference the project directly, since the editor always renders.
+Sources are under `Source~/Turian.Engine.Vulkan`, with shaders compiled by `./build.sh compile-shaders`. The solution build copies the library into `Precast~/lib`.
+
+`Source~/Turian.Editor.Rendering.Vulkan` is the editor side: the `IEditorRenderBackend` the Studio and command line discover, offscreen scene captures, and the model, material and texture preview providers behind asset thumbnails. It ships beside the Studio and command line rather than in `Precast~/editor`, so projects that leave the brick out keep their editor previews. Editor Core and the command line never name Vulkan types, so a different render backend supplies its own `Turian.Editor.Rendering.*` assembly instead.

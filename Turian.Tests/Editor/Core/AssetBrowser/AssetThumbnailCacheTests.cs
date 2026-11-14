@@ -10,7 +10,7 @@ public sealed class AssetThumbnailCacheTests
     public void CachedPreviewsRenderOnceAndReimportsInvalidate()
     {
         var renders = 0;
-        using var cache = new AssetThumbnailCache((_, size) =>
+        using var cache = new AssetThumbnailCache<SKImage>((_, size) =>
         {
             renders++;
             using var surface = SKSurface.Create(new SKImageInfo(size, size));
@@ -38,7 +38,7 @@ public sealed class AssetThumbnailCacheTests
     public void BudgetsBucketsAndEvictionAreBounded()
     {
         var sizes = new List<int>();
-        using var cache = new AssetThumbnailCache((_, size) =>
+        using var cache = new AssetThumbnailCache<SKImage>((_, size) =>
         {
             sizes.Add(size);
             using var bitmap = new SKBitmap(2, 2);
@@ -75,7 +75,7 @@ public sealed class AssetThumbnailCacheTests
     public void FailedPreviewKeepsFallbackWithoutRepeatedWork(bool throws)
     {
         var calls = 0;
-        using var cache = new AssetThumbnailCache((_, _) =>
+        using var cache = new AssetThumbnailCache<SKImage>((_, _) =>
         {
             calls++;
             if (throws)

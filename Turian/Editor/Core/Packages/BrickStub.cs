@@ -90,9 +90,7 @@ public static class BrickStub
     {
         if (Path.GetExtension(source).Equals(".png", StringComparison.OrdinalIgnoreCase))
         {
-            using var bitmap = new SKBitmap(1, 1);
-            using var png = bitmap.Encode(SKEncodedImageFormat.Png, 100);
-            File.WriteAllBytes(target, png.ToArray());
+            File.WriteAllBytes(target, PngEncoder.Encode(new RasterImage(1, 1)));
         }
         else
         {
