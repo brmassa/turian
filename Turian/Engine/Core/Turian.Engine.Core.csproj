@@ -40,10 +40,6 @@
         </ItemGroup>
     </Target>
 
-    <ItemGroup>
-        <ProjectReference Include="$(SolutionDir)/Gaya/MASS4.Bricks/MASS4.Bricks.csproj" />
-    </ItemGroup>
-
     <!-- Engine-independent libraries, each in its own repository; the local checkout is used while unpublished. -->
     <ItemGroup>
         <ProjectReference Include="$(OapLocalPath)/csharp/OpenAssetPackage.csproj" Condition="'$(OapLocalPath)' != ''"/>

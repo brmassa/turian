@@ -4,8 +4,6 @@ namespace Turian.Engine.Core;
 [InternalService(InternalServiceLifetime.Singleton, typeof(IAppSettings))]
 public class AppSettings : IAppSettings
 {
-    BricksSettings? bricks;
-
     /// <inheritdoc/>
     public string ProjectAbsoluteDir { get; set; } = string.Empty;
 
@@ -18,10 +16,6 @@ public class AppSettings : IAppSettings
 
     /// <inheritdoc/>
     public ProjectSettingsSet Loaded { get; } = new();
-
-    /// <inheritdoc/>
-    [Hide, JsonIgnore]
-    public BricksSettings Bricks => BricksSettings.ForProject(ref bricks, ProjectAbsoluteDir);
 
     /// <inheritdoc/>
     public T Get<T>()
