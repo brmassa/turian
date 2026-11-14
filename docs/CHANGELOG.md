@@ -6,6 +6,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+- Removed: object pools moved to the `org.mass4.turian.pooling` #90.
+- Changed: dependencies bumped
+
 ## [4.1.2] - 2026-11-13
 
 - Fixed: compile skips validators of bricks that cannot load
